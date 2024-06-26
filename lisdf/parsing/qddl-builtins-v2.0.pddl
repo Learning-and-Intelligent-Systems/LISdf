@@ -73,6 +73,18 @@
     ; ?color: the color of the box, as a tuple of (r, g, b, a)
     (qrgeom::box-color ?x - qr::body ?color - qr::color)
 
+    ; ?x: the name of the body
+    ; ?mass: the mass of the body (in kilograms) as a float
+    (qrgeom::box-mass ?x - qr::body ?mass - qr::value)
+  
+    ; ?x: the name of the body
+    ; ?inertia: the (diagonal) inertia of the body
+    (qrgeom::box-inertia ?x - qr::body ?inertia - qr::value)
+  
+    ; ?x: the name of the body
+    ; ?contact: contact model of the body, either "point" or "hydroelastic"
+    (qrgeom::box-contact-model ?x - qr::body ?contact_model - qr::value)
+
     (urdf::prop ?x - qr::body ?name - qr::string ?value - qr::value)
     (urdf::load-arg ?x - qr::body ?name - qr::string ?value - qr::value)
 
