@@ -76,14 +76,14 @@ class PDDLType(PDDLStringConfigurable):
 
 @dataclass
 class PDDLObjectType(PDDLType):
-    url: Optional[str] = None
+    url: Optional['PDDLLiteral'] = None
 
-    def __init__(self, identifier: str, url: str) -> None:
+    def __init__(self, identifier: str, url: Optional['PDDLLiteral']) -> None:
         super().__init__(identifier)
         self.url = url
 
     def _to_pddl(self, ctx: StringifyContext) -> str:
-        return f'({self.pddl_name} {self.url})'
+        return f'({self.pddl_name} {self.url.to_pddl(ctx)})'
 
 
 @dataclass
@@ -168,7 +168,7 @@ class PDDLObject(PDDLStringConfigurable):
 
     def _to_pddl(self, ctx: StringifyContext) -> str:
         if ctx.options["use_types"] and self.type is not None:
-            return f"{self.name} - {self.type.to_pddl(ctx)}"
+            return f"{self.name} - {self.type.pddl_name}"
         else:
             return self.name
 
@@ -205,7 +205,12 @@ class PDDLLiteral(PDDLValue):
     value: Union[bool, int, float, str]
 
     def _to_pddl(self, ctx: StringifyContext) -> str:
-        return str(self.value)
+        if isinstance(self.value, bool):
+            return "true" if self.value else "false"
+        elif isinstance(self.value, str):
+            return f'"{self.value}"'
+        else:
+            return str(self.value)
 
 
 @dataclass
@@ -254,6 +259,13 @@ class PDDLDomain(PDDLStringConfigurable):
         fmt += (
             "    "
             + indent_text("\n".join([t.to_pddl(ctx) for t in self.types.values()]), 2)
+            + "\n"
+        )
+        fmt += "  )\n"
+        fmt += "  (:object-types\n"
+        fmt += (
+            "    "
+            + indent_text("\n".join([t.to_pddl(ctx) for t in self.object_types.values()]), 2)
             + "\n"
         )
         fmt += "  )\n"

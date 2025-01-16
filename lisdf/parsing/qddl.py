@@ -43,19 +43,21 @@ class QDDLParser(object):
     def loads(self, string):
         return self.lark.parse(string)
 
-    def transform(self, domain_tree: Tree, problem_tree: Tree) -> Tuple[C.PDDLDomain, C.PDDLProblem]:
-        domain_tree = domain_tree.children[0]
-        problem_tree = problem_tree.children[0]
-
+    def transform(self, domain_tree: Optional[Tree], problem_tree: Optional[Tree]) -> Tuple[C.PDDLDomain, C.PDDLProblem]:
         domain = C.PDDLDomain("")
         transformer = QDDLVisitor(domain, C.PDDLProblem("", domain))
         transformer.set_mode("extend")
         builtins = self.load(type(self).builtins_file).children[0]
         transformer.transform(builtins)
-        transformer.set_mode("domain")
-        transformer.transform(domain_tree)
-        transformer.set_mode("problem")
-        transformer.transform(problem_tree)
+
+        if domain_tree is not None:
+            domain_tree = domain_tree.children[0]
+            transformer.set_mode("domain")
+            transformer.transform(domain_tree)
+        if problem_tree is not None:
+            problem_tree = problem_tree.children[0]
+            transformer.set_mode("problem")
+            transformer.transform(problem_tree)
         return transformer.domain, transformer.problem
 
 
@@ -261,6 +263,10 @@ class QDDLVisitor(Transformer):
 
 
 default_qddl_parser = QDDLParser()
+
+
+def get_default_qddl_domain() -> C.PDDLDomain:
+    return default_qddl_parser.transform(None, None)[0]
 
 
 def load_qddl(domain_file: str, problem_file: str) -> Tuple[C.PDDLDomain, C.PDDLProblem]:
